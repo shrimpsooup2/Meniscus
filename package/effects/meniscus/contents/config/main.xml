@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+                          http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+    <kcfgfile name=""/>
+    <group name="">
+        <!-- full: Meniscus owns the look. flow: only the workflow, desktop colours are followed. -->
+        <entry name="Edition" type="String"><default>full</default></entry>
+        <!-- A theme id from themes.js, or "system" to follow the desktop's colour scheme. -->
+        <entry name="Theme" type="String"><default>amethyst</default></entry>
+
+        <!-- Liquid glass: the material measured against iOS by shayann07/liquidglass.
+             Percentages are of that material unless noted. -->
+        <entry name="Glass" type="Bool"><default>true</default></entry>
+        <!-- 0..100 on the measured tint scale; 50 is iOS's default, Meniscus leans more tinted. -->
+        <entry name="Tint" type="Int"><default>75</default><min>0</min><max>100</max></entry>
+        <!-- Tint the glass with the theme's colour rather than neutral grey. -->
+        <entry name="ThemeTint" type="Bool"><default>true</default></entry>
+        <!-- How strongly the curved rim bends what is behind it. -->
+        <entry name="Refraction" type="Int"><default>100</default><min>0</min><max>200</max></entry>
+        <!-- How far in from the edge the glass curves: 0 is a flat slab, 200 a thick lens. -->
+        <entry name="Curvature" type="Int"><default>100</default><min>0</min><max>200</max></entry>
+        <entry name="Frost" type="Int"><default>100</default><min>0</min><max>300</max></entry>
+        <entry name="Highlights" type="Int"><default>100</default><min>0</min><max>200</max></entry>
+        <entry name="Dispersion" type="Int"><default>100</default><min>0</min><max>300</max></entry>
+        <!-- Percent of full strength. -->
+        <entry name="Shadow" type="Int"><default>60</default><min>0</min><max>100</max></entry>
+        <entry name="ReduceTransparency" type="Bool"><default>false</default></entry>
+        <entry name="IncreaseContrast" type="Bool"><default>false</default></entry>
+        <entry name="LiveBackdrop" type="Bool"><default>true</default></entry>
+
+        <!-- Motion. -->
+        <entry name="Pull" type="Bool"><default>true</default></entry>
+        <entry name="PullStretch" type="Int"><default>100</default><min>0</min><max>200</max></entry>
+        <!-- Overshoot of the springs, percent of Liquid Glass's; 0 for none. -->
+        <entry name="Bounce" type="Int"><default>100</default><min>0</min><max>200</max></entry>
+        <!-- Content blurs while its glass morphs. -->
+        <entry name="MorphBlur" type="Bool"><default>true</default></entry>
+        <entry name="MotionBlur" type="Bool"><default>true</default></entry>
+        <entry name="MotionBlurStrength" type="Int"><default>100</default><min>0</min><max>200</max></entry>
+        <entry name="Speed" type="Int"><default>100</default><min>50</min><max>200</max></entry>
+
+        <!-- Access. Corner values: palette, deck, controls, settings, modes, tray, none. -->
+        <entry name="HotCorners" type="Bool"><default>true</default></entry>
+        <entry name="CornerTopLeft" type="String"><default>palette</default></entry>
+        <entry name="CornerTopRight" type="String"><default>controls</default></entry>
+        <entry name="CornerBottomLeft" type="String"><default>deck</default></entry>
+        <entry name="CornerBottomRight" type="String"><default>none</default></entry>
+        <entry name="Beads" type="Bool"><default>true</default></entry>
+        <entry name="HoldToCommit" type="Bool"><default>true</default></entry>
+
+        <!-- Tray: a drawer of ten apps at the bottom border, slots 1 to 9 then 0. Comma separated
+             desktop file ids; write id=icon where the app's icon is named differently. -->
+        <entry name="Tray" type="Bool"><default>true</default></entry>
+        <entry name="TrayApps" type="String"><default>org.kde.dolphin=system-file-manager,org.mozilla.firefox,org.kde.konsole=utilities-terminal,steam,org.kde.discover=plasmadiscover,systemsettings=preferences-system</default></entry>
+
+        <!-- Windows. -->
+        <entry name="AutoSolo" type="Bool"><default>true</default></entry>
+        <entry name="Frameless" type="Bool"><default>true</default></entry>
+        <entry name="Gap" type="Int"><default>0</default><min>0</min><max>48</max></entry>
+        <!-- Comma separated; a window whose class contains one of these is left alone. -->
+        <entry name="IgnoreClasses" type="String"><default>steam_app_,gamescope,spectacle,krunner,plasmashell,xwaylandvideobridge</default></entry>
+
+        <!-- Mirrored into the meniscus_motion window effect by meniscusctl. -->
+        <entry name="WindowBlur" type="Bool"><default>true</default></entry>
+        <entry name="WindowGlide" type="Bool"><default>true</default></entry>
+        <entry name="WindowPull" type="Bool"><default>true</default></entry>
+
+        <!-- Modes. Comma separated theme ids by desktop number; empty keeps the current theme. -->
+        <entry name="ModeThemes" type="String"><default></default></entry>
+    </group>
+</kcfg>

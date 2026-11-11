@@ -1,0 +1,3 @@
+module LiquidGlass
+# Meniscus: GlassSurface.qml is omitted; ../Glass.qml hosts GlassEffect itself.
+GlassEffect 1.0 GlassEffect.qml
