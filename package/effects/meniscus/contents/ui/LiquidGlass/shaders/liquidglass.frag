@@ -90,6 +90,8 @@ layout(std140, binding = 0) uniform buf {
     float uEdgeFold;
     float uRefractGain;   // Meniscus: the Refraction setting, a gain on the displacement
     float uDark;          // Meniscus: 1 when the theme is dark, which picks the Increase Contrast solid
+    vec4 uSwell;          // Meniscus: a second fused rect (centre offset, half size): the tray's bulge
+    vec2 uSwellShape;     // Meniscus: its corner radius and reach; reach 0 for none
 };
 
 layout(binding = 1) uniform sampler2D source;  // the live backdrop under the padded layer
@@ -467,6 +469,9 @@ float sdShape(vec2 p, vec2 halfSize) {
         float d = sdRoundRect(p, halfSize, uRadii);
         if (uFuseShape.y > 0.0) {
             d = smin(d, sdRoundRect(p - uFuse.xy, uFuse.zw, vec4(uFuseShape.x)), uFuseShape.y);
+        }
+        if (uSwellShape.y > 0.0) {
+            d = smin(d, sdRoundRect(p - uSwell.xy, uSwell.zw, vec4(uSwellShape.x)), uSwellShape.y);
         }
         return d;
     }
@@ -889,7 +894,7 @@ vec4 glassMain(vec2 coord) {
         vec4 bq = bodyQuery(p, uBody, uBodyY);
         n = vec2(bq.y, bq.z);
         axisFade = 1.0;
-    } else if (analyticNormalEligible(uShapeKind, uRefractBand, halfSize, uFuseShape.y) > 0.5) {
+    } else if (analyticNormalEligible(uShapeKind, uRefractBand, halfSize, max(uFuseShape.y, uSwellShape.y)) > 0.5) {
         // The shared closed-form normal (GlassNormalSource.kt); the content and container shaders take
         // the same decision for equivalent geometry, so the three paths bend alike.
         n = analyticNormal(p, halfSize, uRadii, uCornerPower, uProfile);

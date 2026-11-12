@@ -17,6 +17,4 @@ Item {
         active: effect.visible
         sourceComponent: effect.delegate
     }
-
-    Component.onCompleted: configuration.writeConfig = function () { KWin.Workspace.mockSay("writeConfig") }
 }

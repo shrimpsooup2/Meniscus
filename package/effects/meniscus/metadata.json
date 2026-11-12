@@ -1,0 +1,18 @@
+{
+    "KPackageStructure": "KWin/Effect",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "shrimpsooup2"
+            }
+        ],
+        "Category": "Appearance",
+        "Description": "Liquid glass surfaces opened with a key or a hot corner: palette, tray, controls, modes and deck",
+        "EnabledByDefault": true,
+        "Icon": "meniscus",
+        "Id": "meniscus",
+        "Name": "Meniscus"
+    },
+    "X-KDE-Ordering": 60,
+    "X-Plasma-API": "declarativescript"
+}

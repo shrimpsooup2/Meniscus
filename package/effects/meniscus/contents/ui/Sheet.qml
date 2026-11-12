@@ -18,6 +18,10 @@ FocusScope {
     property bool shown: false
     property real radius: ui.radius
     default property alias content: holder.data
+    // A bulge of the glass, in the content's coordinates: a rect merged into the outline.
+    property rect swell: Qt.rect(0, 0, 0, 0)
+    property real swellRadius: 0
+    property real swellReach: 0
 
     property real m: 1                      // 0 at rest, 1 gone
     property bool arriving: false           // the film m plays: coming out, or going back
@@ -102,6 +106,15 @@ FocusScope {
         fuse: sheet.frame.fuse
         fuseRadius: sheet.frame.fuseRadius
         fuseReach: sheet.frame.fuseReach
+        swell: {
+            // From the content's resting layout to the glass, as the content scales about its centre.
+            const s = sheet.frame.scale
+            return Qt.rect(holder.x + holder.width * (1 - s) / 2 + sheet.swell.x * s,
+                           holder.y + holder.height * (1 - s) / 2 + sheet.swell.y * s,
+                           sheet.swell.width * s, sheet.swell.height * s)
+        }
+        swellRadius: sheet.swellRadius * sheet.frame.scale
+        swellReach: sheet.swellReach * sheet.frame.scale
         materialize: sheet.frame.materialize
 
         MouseArea {

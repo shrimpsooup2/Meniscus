@@ -92,6 +92,8 @@ ShaderEffect {
     property real uEdgeFold
     property real uRefractGain: 1   // Meniscus
     property real uDark             // Meniscus
+    property vector4d uSwell        // Meniscus
+    property point uSwellShape      // Meniscus
 
     /** Sets every material uniform from {name: [numbers]} (material.js). */
     function setUniforms(values) {

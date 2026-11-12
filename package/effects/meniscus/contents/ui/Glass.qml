@@ -20,21 +20,32 @@ Item {
     property rect fuse: Qt.rect(0, 0, 0, 0)     // this item's coordinates; may lie outside it
     property real fuseRadius: 0
     property real fuseReach: 0                  // smoothing of the neck; it parts at a gap of half this
+    property rect swell: Qt.rect(0, 0, 0, 0)    // a second rect merged the same way: a bulge
+    property real swellRadius: 0
+    property real swellReach: 0
     property bool followsMovement: false        // set while an ancestor moves the glass
     default property alias content: contentItem.data
 
     readonly property bool liquid: effect.visible
     readonly property real dpr: ui.dpr
     readonly property bool fused: fuseReach > 0 && fuse.width > 0 && fuse.height > 0
+    readonly property bool swelled: swellReach > 0 && swell.width > 0 && swell.height > 0
 
     // The layer the shader draws: the body, two device pixels for its outer contour, and room for
-    // the fuse and the bulge of its neck. The shader places the body `lead` in from the layer's
-    // top-left on both axes, so those two sides grow together.
+    // the fuse, the swell and the bulges of their necks. The shader places the body `lead` in from
+    // the layer's top-left on both axes, so those two sides grow together.
     readonly property real pad: 2 / dpr
     readonly property real bulge: fused ? fuseReach / 4 + pad : pad
-    readonly property real lead: fused ? Math.max(pad, bulge - fuse.x, bulge - fuse.y) : pad
-    readonly property real trailX: fused ? Math.max(pad, fuse.x + fuse.width - width + bulge) : pad
-    readonly property real trailY: fused ? Math.max(pad, fuse.y + fuse.height - height + bulge) : pad
+    readonly property real swellBulge: swelled ? swellReach / 4 + pad : pad
+    readonly property real lead: Math.max(pad,
+        fused ? Math.max(bulge - fuse.x, bulge - fuse.y) : pad,
+        swelled ? Math.max(swellBulge - swell.x, swellBulge - swell.y) : pad)
+    readonly property real trailX: Math.max(pad,
+        fused ? fuse.x + fuse.width - width + bulge : pad,
+        swelled ? swell.x + swell.width - width + swellBulge : pad)
+    readonly property real trailY: Math.max(pad,
+        fused ? fuse.y + fuse.height - height + bulge : pad,
+        swelled ? swell.y + swell.height - height + swellBulge : pad)
 
     readonly property var material: {
         if (width <= 0 || height <= 0)
@@ -131,6 +142,13 @@ Item {
                : Qt.vector4d(0, 0, 0, 0)
         uFuseShape: Qt.point(Math.min(glass.fuseRadius, glass.fuse.width / 2, glass.fuse.height / 2) * glass.dpr,
                              glass.fused ? glass.fuseReach * glass.dpr : 0)
+        uSwell: glass.swelled
+                ? Qt.vector4d((glass.swell.x + (glass.swell.width - glass.width) / 2) * glass.dpr,
+                              (glass.swell.y + (glass.swell.height - glass.height) / 2) * glass.dpr,
+                              glass.swell.width / 2 * glass.dpr, glass.swell.height / 2 * glass.dpr)
+                : Qt.vector4d(0, 0, 0, 0)
+        uSwellShape: Qt.point(Math.min(glass.swellRadius, glass.swell.width / 2, glass.swell.height / 2) * glass.dpr,
+                              glass.swelled ? glass.swellReach * glass.dpr : 0)
     }
 
     Rectangle {

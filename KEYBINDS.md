@@ -6,18 +6,18 @@ Plasma defaults were read from the 6.8.2 release sources of kwin, plasma-workspa
 
 ## Meniscus
 
-These are the default keys. Every row is planned; nothing is bound yet. Any key can be changed in the Keymap (Meta+K) or in System Settings › Keyboard › Shortcuts › KWin. *Both* means the full edition and Meniscus Flow.
+These are the default keys. The `meniscus` effect binds every row except Meta+F, which comes with window management; Meta+C, Meta+M, Meta+K and Meta+Tab do nothing until their surfaces are built. Any key can be changed in the Keymap (Meta+K) or in System Settings › Keyboard › Shortcuts › KWin. *Both* means the full edition and Meniscus Flow.
 
 | Key | Action | Edition |
 |:--|:--|:--|
 | Meta+Space | Palette: apps, files, commands | both |
-| Meta+A, held | Tray: the app drawer; it closes when you let go | both |
-| Meta+1 … Meta+9, Meta+0 | Start tray app 1–10, with the tray up or not | both |
+| Meta+A | Tray, the app drawer. Held, it goes when you let go of Meta; tapped, it stays until Meta+A, Esc or a click | both |
+| Meta+1 … Meta+9, Meta+0 | Tray app 1–10: to its window (again: its next window), or start it. Works with the tray down too | both |
 | Meta+C | Controls: media, volume, brightness, power | both |
-| Meta+M | Modes | both |
+| Meta+M | Modes; again moves to the next mode | both |
 | Meta+F | Pop the active window out into a framed float, or dock it back | both |
 | Meta+K | Keymap: see and change every key, Plasma's included | both |
-| Meta+Tab | Deck | full |
+| Meta+Tab | Deck; again moves to the next window | full |
 
 Hot corners, set by `HotCorners` and `Corner*`:
 
@@ -35,8 +35,9 @@ These keys work only while a Meniscus surface is open, and they never reach othe
 | Esc, or a click on the empty desktop | Close |
 | Tab, Shift+Tab | Next, previous surface |
 | Arrows, Enter | Move, run |
+| Ctrl+1 … Ctrl+9, Ctrl+0 | Palette: pin the highlighted app to that tray slot |
 | 1 … 9, 0 | Tray slots, while the tray is up |
-| Letting go of Meta | With `HoldToCommit` on, run the highlighted item and close |
+| Letting go of Meta | Puts away a tray brought up by holding Meta+A. With `HoldToCommit` on, also takes the Deck's window, or the mode moved to with Meta+M |
 
 ### Leader chords (draft)
 

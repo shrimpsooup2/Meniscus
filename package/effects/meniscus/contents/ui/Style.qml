@@ -1,6 +1,7 @@
 import QtQuick
 import org.kde.kirigami as Kirigami
 import "themes.js" as Themes
+import "apps.js" as Apps
 
 // The one place that knows how Meniscus looks and moves: the user's settings,
 // the palette of the active theme, sizes and timing. One per screen, handed to
@@ -46,10 +47,7 @@ Item {
     readonly property bool full: config.Edition !== "flow"
     readonly property bool tray: config.Tray
     // Tray slots in order, 1 to 9 then 0, as {id, icon}; an empty id is an empty slot.
-    readonly property var trayApps: String(config.TrayApps || "").split(",").slice(0, 10).map(entry => {
-        const parts = entry.trim().split("=")
-        return { id: parts[0], icon: parts[1] || parts[0] }
-    })
+    readonly property var trayApps: Apps.parse(config.TrayApps)
 
     // ---- palette ---------------------------------------------------------
     readonly property bool system: config.Theme === "system"

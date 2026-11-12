@@ -3,6 +3,7 @@ import org.kde.kwin as KWin
 
 // Stand-in for KWin's DBusCall: logs the call and reports success.
 QtObject {
+    id: dbus
     property string service
     property string path
     property string dbusInterface
@@ -14,7 +15,7 @@ QtObject {
 
     function call() {
         KWin.Workspace.mockSay("dbus " + service + " " + path + " " + dbusInterface + "." + method
-                               + " " + JSON.stringify(arguments))
+                               + " " + JSON.stringify(dbus.arguments))
         finished([])
     }
 }

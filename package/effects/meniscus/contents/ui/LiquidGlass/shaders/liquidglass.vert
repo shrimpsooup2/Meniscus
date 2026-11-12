@@ -91,6 +91,8 @@ layout(std140, binding = 0) uniform buf {
     float uEdgeFold;
     float uRefractGain;   // Meniscus: the Refraction setting, a gain on the displacement
     float uDark;          // Meniscus: 1 when the theme is dark, which picks the Increase Contrast solid
+    vec4 uSwell;          // Meniscus: a second fused rect (centre offset, half size): the tray's bulge
+    vec2 uSwellShape;     // Meniscus: its corner radius and reach; reach 0 for none
 };
 
 void main() {

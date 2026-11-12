@@ -160,6 +160,8 @@ class Workspace(Thing):
     desktopsChanged = Signal()
     windowsChanged = Signal()
     mockLog = Signal(str)
+    mockShortcut = Signal(str)      # kglobalaccel firing a sequence: the ShortcutHandler stand-ins
+    mockEdge = Signal(int)          # the pointer pushed into a screen edge or corner
 
     declare(locals(), "currentActivity", str, "")
     declare(locals(), "cursorPos", QPointF, QPointF())
@@ -268,6 +270,10 @@ class Workspace(Thing):
     @Slot(str, result=bool)
     def isEffectActive(self, plugin):
         return False
+
+    @Slot(QPointF, result=QObject)
+    def screenAt(self, position):
+        return self._screen
 
     # ---- stand-in only ----------------------------------------------------
     @Slot(str, result=QObject)
@@ -464,6 +470,7 @@ class VirtualDesktopModel(QAbstractListModel):
 class SceneViewAttached(QObject):
     screen = Property(QObject, lambda self: WORKSPACE._screen, constant=True)
     rootItem = Property(QObject, lambda self: HARNESS.view.contentItem(), constant=True)
+    effect = Property(QObject, lambda self: HARNESS.view.rootObject(), constant=True)
 
 
 @QmlElement
@@ -491,7 +498,8 @@ class ResultsModel(QAbstractListModel):
     """org.kde.milou's results: here a fixed list of applications."""
 
     ROLES = {Qt.DisplayRole: b"display", Qt.DecorationRole: b"decoration",
-             Qt.UserRole + 1: b"category", Qt.UserRole + 2: b"subtext", Qt.UserRole + 3: b"matchId"}
+             Qt.UserRole + 1: b"category", Qt.UserRole + 2: b"subtext", Qt.UserRole + 3: b"matchId",
+             Qt.UserRole + 4: b"urls"}
     changed = Signal()
 
     def __init__(self, parent=None):
@@ -530,7 +538,8 @@ class ResultsModel(QAbstractListModel):
             return None
         name, subtext, icon = self._rows[index.row()]
         return {b"display": name, b"decoration": icon, b"category": "Applications",
-                b"subtext": subtext, b"matchId": icon}.get(self.ROLES.get(role))
+                b"subtext": subtext, b"matchId": icon,
+                b"urls": [f"file:///usr/share/applications/{icon}.desktop"]}.get(self.ROLES.get(role))
 
     @Slot(QModelIndex, result=bool)
     def run(self, index):
@@ -572,23 +581,48 @@ class Harness(QObject):
         self.frames.append(path)
         print(f"shot {path.relative_to(ROOT).as_posix()}", flush=True)
 
-    def _key(self, key, modifiers, text):
-        for kind in (QEvent.KeyPress, QEvent.KeyRelease):
+    def _key(self, kinds, key, modifiers, text):
+        for kind in kinds:
             QCoreApplication.sendEvent(self.view, QKeyEvent(kind, key, Qt.KeyboardModifier(modifiers), text))
+
+    def _named(self, kinds, name, modifiers):
+        if len(name) == 1:
+            self._key(kinds, ord(name.upper()), modifiers, name if not modifiers else "")
+        else:
+            self._key(kinds, getattr(Qt.Key, "Key_" + name).value, modifiers, "")
 
     @Slot(str)
     @Slot(str, int)
     def key(self, name, modifiers=0):
-        """A named key such as Down, Return, Escape, Tab, or one character."""
-        if len(name) == 1:
-            self._key(ord(name.upper()), modifiers, name if not modifiers else "")
-        else:
-            self._key(getattr(Qt.Key, "Key_" + name).value, modifiers, "")
+        """A named key such as Down, Return, Escape, Tab, Super_L, or one character."""
+        self._named((QEvent.KeyPress, QEvent.KeyRelease), name, modifiers)
+
+    @Slot(str)
+    @Slot(str, int)
+    def keyDown(self, name, modifiers=0):
+        self._named((QEvent.KeyPress,), name, modifiers)
+
+    @Slot(str)
+    @Slot(str, int)
+    def keyUp(self, name, modifiers=0):
+        self._named((QEvent.KeyRelease,), name, modifiers)
+
+    @Slot(str)
+    @Slot(str, int)
+    def shortcut(self, sequence, repeats=0):
+        """A global shortcut as kglobalaccel fires it: once, then once per auto-repeat."""
+        for _ in range(repeats + 1):
+            WORKSPACE.mockShortcut.emit(sequence)
+
+    @Slot(int)
+    def corner(self, edge):
+        WORKSPACE.mockEdge.emit(edge)
 
     @Slot(str)
     def type(self, text):
         for character in text:
-            self._key(Qt.Key.Key_Space.value if character == " " else ord(character.upper()), 0, character)
+            self._key((QEvent.KeyPress, QEvent.KeyRelease),
+                      Qt.Key.Key_Space.value if character == " " else ord(character.upper()), 0, character)
 
     def _mouse(self, kind, x, y, button, buttons):
         position = QPointF(x, y)
@@ -648,6 +682,17 @@ def make_sheet(frames, path, columns=3, cell=800):
     print(f"sheet {path.relative_to(ROOT).as_posix()}", flush=True)
 
 
+def make_config(values):
+    """The effect's configuration as KWin hands it to the QML: a property per key and writeConfig."""
+    def writeConfig(self):
+        WORKSPACE.mockSay("writeConfig")
+
+    namespace = {"writeConfig": Slot()(writeConfig)}
+    for key, value in values.items():
+        declare(namespace, key, type(value), value)
+    return type("Config", (Thing,), namespace)(**values)
+
+
 def read_config(overrides):
     """Defaults from the effect's kcfg, as KWin would hand them to the QML."""
     space = {"k": "http://www.kde.org/standards/kcfg/1.0"}
@@ -685,19 +730,17 @@ def main():
     values = read_config(overrides)
 
     app = QGuiApplication(sys.argv[:1])
-    config = QQmlPropertyMap()
-    for key, value in values.items():
-        config.insert(key, value)
+    config = make_config(values)
 
     WORKSPACE = Workspace(width, height, config)
     theme = values["Theme"] if values["Theme"] != "system" else "amethyst"
     WORKSPACE.mockWallpaper = QUrl.fromLocalFile(str(ROOT / "themes" / "wallpapers" / f"{theme}.jpg"))
 
-    def follow_theme(key, value):
-        if key == "Theme" and value != "system":
-            WORKSPACE.mockWallpaper = QUrl.fromLocalFile(str(ROOT / "themes" / "wallpapers" / f"{value}.jpg"))
+    def follow_theme():
+        if config.Theme != "system":
+            WORKSPACE.mockWallpaper = QUrl.fromLocalFile(str(ROOT / "themes" / "wallpapers" / f"{config.Theme}.jpg"))
 
-    config.valueChanged.connect(follow_theme)
+    config.ThemeChanged.connect(follow_theme)
 
     qmlRegisterSingletonInstance(Workspace, "org.kde.kwin", 1, 0, "Workspace", WORKSPACE)
     qmlRegisterType(WindowModel, "org.kde.kwin", 1, 0, "WindowModel")
@@ -723,7 +766,8 @@ def main():
     view.resize(width, height)
     view.setPosition(0, 0)
     if not options.keep:
-        view.setFlags(Qt.FramelessWindowHint)   # a frame would clamp it to the screen
+        # A frame would clamp it to the screen; the real pointer must not hover the scene.
+        view.setFlags(Qt.FramelessWindowHint | Qt.WindowTransparentForInput)
     view.setTitle("Meniscus preview")
     view.rootContext().setContextProperty("harness", HARNESS)
     seen = set()
