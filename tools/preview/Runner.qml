@@ -7,15 +7,13 @@ Item {
     id: runner
 
     required property var effect
-    property bool keep: false
     property var steps: []
     property int at: 0
     readonly property var workspace: KWin.Workspace
 
     function next() {
         if (at >= steps.length) {
-            if (!keep)
-                harness.done()
+            harness.done()
             return
         }
         timer.interval = Math.max(1, steps[at][0])

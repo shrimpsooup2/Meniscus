@@ -15,6 +15,7 @@ Item {
     property real radius: ui.radius
     property real tintAmount: ui.tint           // 0..100, the measured material's tint scale
     property color tintColor: ui.glassTint      // alpha 0: the measured neutral grey
+    property real frost: ui.frost               // 1 at the measured blur
     property real materialize: 1                // 0..1: glass forms out of its lensing, not alpha
     property real shadow: ui.shadow             // 0..1
     property rect fuse: Qt.rect(0, 0, 0, 0)     // this item's coordinates; may lie outside it
@@ -24,7 +25,10 @@ Item {
     property real swellRadius: 0
     property real swellReach: 0
     property bool followsMovement: false        // set while an ancestor moves the glass
+    property bool lensing: true                 // false: no material, only the shadow and the children
+    property bool live: ui.liveBackdrop         // redraw the backdrop every frame, not once
     default property alias content: contentItem.data
+    readonly property Item pane: effect         // the drawn material, for glass resting on this one to bend
 
     readonly property bool liquid: effect.visible
     readonly property real dpr: ui.dpr
@@ -62,7 +66,7 @@ Item {
         v.uDark = [ui.dark ? 1 : 0]           // the Increase Contrast solid follows the theme
         v.uRefractBand[0] *= ui.curvature     // the width of the curved rim, and so its bend
         v.uBevel[0] *= ui.curvature           // and of the light it catches
-        v.uBlur[0] *= ui.frost
+        v.uBlur[0] *= frost
         v.uSpecular[0] *= ui.highlights
         v.uAberration[0] *= ui.dispersion
         v.uBase = [ui.plate.r, ui.plate.g, ui.plate.b]
@@ -115,7 +119,7 @@ Item {
     ShaderEffectSource {
         id: backdropTexture
         sourceItem: effect.visible ? glass.backdrop : null
-        live: glass.ui.liveBackdrop
+        live: glass.live
         hideSource: false
         visible: false
         smooth: true
@@ -129,7 +133,7 @@ Item {
         y: -glass.lead
         width: glass.lead + glass.width + glass.trailX
         height: glass.lead + glass.height + glass.trailY
-        visible: glass.ui.glass && glass.backdrop !== null && status !== ShaderEffect.Error
+        visible: glass.lensing && glass.ui.glass && glass.backdrop !== null && status !== ShaderEffect.Error
                  && glass.width > 0 && glass.height > 0
         source: backdropTexture
         field: backdropTexture      // the shape is analytic; the field is bound but unread
@@ -153,7 +157,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        visible: !effect.visible && width > 0 && height > 0
+        visible: glass.lensing && !effect.visible && width > 0 && height > 0
         radius: Math.min(glass.radius, width / 2, height / 2)
         color: Qt.rgba(glass.ui.plate.r, glass.ui.plate.g, glass.ui.plate.b, 0.92 * glass.materialize)
         border.width: 1

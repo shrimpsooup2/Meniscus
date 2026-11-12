@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+import time
 import uuid
 import xml.etree.ElementTree as ET
 from enum import IntEnum, IntFlag
@@ -563,23 +564,53 @@ class ResultsModel(QAbstractListModel):
 class Harness(QObject):
     """What a scene script can do: press keys, move the pointer, save frames."""
 
-    def __init__(self, view, out, sheet):
+    def __init__(self, view, out, sheet, keep):
         super().__init__()
         self.view = view
         self.out = out
         self.sheet = sheet
-        self.frames = []
+        self.keep = keep
+        self.frames = []    # (path, image): saved by done(), as encoding mid-scene stalls the animation
         self.status = 0
+        self.pace = False
+        self.swaps = []     # when each frame was handed to the screen, with --pace
+        self.marks = []     # when each shot was asked for, with --pace
 
     @Slot(str)
     def shot(self, name):
-        path = self.out / f"{name}.png"
-        if not self.view.grabWindow().save(str(path)):
-            print(f"could not save {path}", flush=True)
-            self.status = 1
+        if self.pace:
+            # Timing frames: a grab would stall the very frames being timed.
+            self.marks.append((time.perf_counter(), name))
             return
-        self.frames.append(path)
-        print(f"shot {path.relative_to(ROOT).as_posix()}", flush=True)
+        self.frames.append((self.out / f"{name}.png", self.view.grabWindow()))
+
+    def time_frames(self):
+        """Keeps every vsync rendering and stamps each frame as it swaps, for done() to judge."""
+        self.pace = True
+        ticker = QQmlComponent(self.view.engine())
+        ticker.setData(b"import QtQuick\nRectangle { width: 1; height: 1; color: '#02000000'\n"
+                       b"NumberAnimation on rotation { from: 0; to: 360; duration: 1000; loops: Animation.Infinite } }",
+                       QUrl())
+        self.ticker = ticker.create()
+        self.ticker.setParentItem(self.view.rootObject())
+        self.view.frameSwapped.connect(lambda: self.swaps.append(time.perf_counter()), Qt.DirectConnection)
+
+    def report_pace(self):
+        gaps = [(b - a, b) for a, b in zip(self.swaps, self.swaps[1:])]
+        if len(gaps) < 2:
+            print("pace: too few frames", flush=True)
+            return
+        lengths = sorted(gap for gap, _ in gaps)
+        median = lengths[len(lengths) // 2]
+        late = [(gap, end) for gap, end in gaps if gap > 1.5 * median]
+        print(f"pace: {len(gaps)} frames, median {median * 1000:.1f} ms, "
+              f"p99 {lengths[int(len(lengths) * 0.99)] * 1000:.1f} ms, "
+              f"{len(late)} late (over {1.5 * median * 1000:.0f} ms)", flush=True)
+        start = self.swaps[0]
+        for gap, end in sorted(late, reverse=True)[:8]:
+            before = [name for stamp, name in self.marks if stamp <= end]
+            print(f"  {gap * 1000:6.1f} ms ending {end - start:6.2f} s, after {before[-1] if before else 'start'}",
+                  flush=True)
 
     def _key(self, kinds, key, modifiers, text):
         for kind in kinds:
@@ -659,9 +690,20 @@ class Harness(QObject):
 
     @Slot()
     def done(self):
-        if self.sheet and self.frames:
-            make_sheet(self.frames, self.out / f"{self.sheet}.jpg")
-        QCoreApplication.exit(self.status)
+        if self.pace:
+            self.report_pace()
+        saved = []
+        for path, image in self.frames:
+            if image.save(str(path)):
+                saved.append(path)
+                print(f"shot {path.relative_to(ROOT).as_posix()}", flush=True)
+            else:
+                print(f"could not save {path}", flush=True)
+                self.status = 1
+        if self.sheet and saved:
+            make_sheet(saved, self.out / f"{self.sheet}.jpg")
+        if not self.keep:
+            QCoreApplication.exit(self.status)
 
 
 def make_sheet(frames, path, columns=3, cell=800):
@@ -722,6 +764,7 @@ def main():
     parser.add_argument("--out", default=str(ROOT / "preview" / "out"))
     parser.add_argument("--sheet", metavar="NAME", help="also tile all frames into NAME.jpg")
     parser.add_argument("--keep", action="store_true", help="leave the window open afterwards")
+    parser.add_argument("--pace", action="store_true", help="time every frame instead of saving shots")
     options = parser.parse_args()
 
     global WORKSPACE, HARNESS
@@ -760,13 +803,15 @@ def main():
     out = Path(options.out).resolve()
     out.mkdir(parents=True, exist_ok=True)
     view = QQuickView()
-    HARNESS = Harness(view, out, options.sheet)
+    HARNESS = Harness(view, out, options.sheet, options.keep)
     view.setResizeMode(QQuickView.SizeRootObjectToView)
     view.setColor("#000000")
     view.resize(width, height)
     view.setPosition(0, 0)
     if not options.keep:
-        # A frame would clamp it to the screen; the real pointer must not hover the scene.
+        # A frame would clamp it to the screen; the real pointer must not hover the scene. Windows makes
+        # such a window layered, which caps it at half the refresh rate; an opaque one stalls for a
+        # second every two while it runs in the background.
         view.setFlags(Qt.FramelessWindowHint | Qt.WindowTransparentForInput)
     view.setTitle("Meniscus preview")
     view.rootContext().setContextProperty("harness", HARNESS)
@@ -791,12 +836,14 @@ def main():
     QCoreApplication.sendEvent(view, QFocusEvent(QEvent.FocusIn, Qt.ActiveWindowFocusReason))
 
     script = QQmlComponent(view.engine(), QUrl.fromLocalFile(str(SCENES / f"{options.scene}.qml")))
-    runner = script.createWithInitialProperties({"effect": view.rootObject(), "keep": options.keep})
+    runner = script.createWithInitialProperties({"effect": view.rootObject()})
     if runner is None:
         for error in script.errors():
             print("QML", error.toString(), flush=True)
         return 1
     runner.setParent(view.rootObject())
+    if options.pace:
+        HARNESS.time_frames()
     status = app.exec()
     view.setSource(QUrl())      # take the QML down while the stand-ins still exist
     return status
