@@ -277,6 +277,15 @@ class Workspace(Thing):
                 return window
         return None
 
+    @Slot(str, result=str)
+    def mockIcon(self, name):
+        """A picture for an icon name from tools/mock/icons, a local cache kept out of git, or ''."""
+        for suffix in (".svg", ".png"):
+            path = MOCK / "icons" / f"{name}{suffix}"
+            if name and path.is_file():
+                return QUrl.fromLocalFile(str(path)).toString()
+        return ""
+
     @Slot(str, str, str, float, float, float, float, result=QObject)
     @Slot(str, str, str, float, float, float, float, int, result=QObject)
     def mockOpen(self, caption, resource_class, kind, x, y, width, height, desktop=-1):
