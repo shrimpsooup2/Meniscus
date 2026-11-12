@@ -21,6 +21,8 @@ KWin.SceneEffect {
     // Sheets on screen across the views; the effect stops once the last one has gone.
     property int present: 0
     property var stamps: ({})
+    // What a key just did, for the glass pill: {text, keys, icon}. See tell().
+    property var toast: null
 
     readonly property bool full: configuration.Edition !== "flow"
     readonly property var trayApps: Apps.parse(configuration.TrayApps)
@@ -134,16 +136,31 @@ KWin.SceneEffect {
             if (window.desktopFileName === app.id && window.normalWindow && !window.deleted)
                 windows.push(window)
         }
-        if (windows.length === 0)
+        const name = Apps.name(app.id)
+        if (windows.length === 0) {
             system.ctl(["launch", app.id])
-        else
+            tell("Starting " + name, ["Meta", Apps.key(slot)], app.icon)
+        } else {
             KWin.Workspace.activeWindow = windows[0].active ? windows[windows.length - 1] : windows[0]
+            tell(name, ["Meta", Apps.key(slot)], app.icon)
+        }
     }
 
     // Writes one setting and saves it.
     function set(key, value) {
         configuration[key] = value
         configuration.writeConfig()
+    }
+
+    // Feedback for a key that acted without opening anything (Feedback setting): a glass pill on
+    // the surface that is up, or Plasma's popup when none is, since a running effect owns the screen.
+    function tell(text, keys, icon) {
+        if (!configuration.Feedback)
+            return
+        if (visible && surface !== "")
+            toast = { text: text, keys: keys || [], icon: icon || "" }
+        else
+            system.osd(icon || "", keys && keys.length ? text + "   " + keys.join("+") : text)
     }
 
     delegate: Shell {}

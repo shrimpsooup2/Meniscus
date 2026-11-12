@@ -47,6 +47,11 @@ QtObject {
              "invokeShortcut", [name])
     }
 
+    // Plasma's on-screen display, the popup its volume and brightness keys show.
+    function osd(icon, text) {
+        dbus("org.kde.plasmashell", "/org/kde/osdService", "org.kde.osdService", "showText", [icon, text])
+    }
+
     function act(what) {
         switch (what) {
         case "play": return shortcut("mediacontrol", "playpausemedia")

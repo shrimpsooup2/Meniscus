@@ -30,3 +30,9 @@ function idOf(url) {
     const name = String(url || "").split("/").pop()
     return name.endsWith(".desktop") ? decodeURIComponent(name.slice(0, -8)) : ""
 }
+
+// A readable name from a desktop file id: its last part, capitalised (org.kde.dolphin: Dolphin).
+function name(id) {
+    const last = String(id || "").split(".").pop()
+    return last ? last.charAt(0).toUpperCase() + last.slice(1) : ""
+}

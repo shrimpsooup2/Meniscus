@@ -23,6 +23,9 @@ Runner {
         [600, () => { expect("surface", effect.surface, "palette"); harness.shot("shell_palette") }],
         [50, () => harness.type("fire")],
         [400, () => harness.shot("shell_palette_apps")],
+        // Ctrl+3 pins the highlighted app to slot 3, and the glass says so.
+        [50, () => harness.key("3", Qt.ControlModifier)],
+        [400, () => { expect("toast", effect.toast ? effect.toast.text : "", "Pinned Firefox to"); harness.shot("shell_toast") }],
         [50, () => { harness.key("Backspace"); harness.key("Backspace"); harness.key("Backspace"); harness.key("Backspace") }],
         [50, () => harness.type("theme")],
         [50, () => harness.key("Down")],
@@ -36,8 +39,8 @@ Runner {
         [400, () => harness.keyUp("Super_L")],
         [50, () => expect("surface after a held peek", effect.surface, "")],
         // Tray tapped: it stays.
-        [800, () => harness.shortcut("Meta+A")],
-        [100, () => harness.keyUp("Super_L")],
+        // In one step, so a slow frame cannot turn the tap into a hold.
+        [800, () => { harness.shortcut("Meta+A"); harness.keyUp("Super_L") }],
         [500, () => { expect("surface after a tap", effect.surface, "tray"); harness.shot("shell_tray") }],
         [50, () => harness.move(slot(2), 1036)],
         [700, () => harness.shot("shell_tray_hover_3")],

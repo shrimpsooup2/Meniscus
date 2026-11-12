@@ -19,6 +19,8 @@ These are the default keys. The `meniscus` effect binds every row except Meta+F,
 | Meta+K | Keymap: see and change every key, Plasma's included | both |
 | Meta+Tab | Deck; again moves to the next window | full |
 
+With `Feedback` on (the default; the palette's *Shortcut Feedback* turns it off), a key that acts without opening anything says what it did: Meta+1 … 0 shows the app it went to or started, Ctrl+digit in the palette the slot it pinned to. While a surface is up the note is a glass pill above the bottom border; otherwise it is Plasma's own popup, because a running effect covers the screen.
+
 Hot corners, set by `HotCorners` and `Corner*`:
 
 | Corner | Opens |

@@ -35,7 +35,18 @@ Sheet {
         for (const theme of Themes.list)
             list.push({ name: "Theme: " + theme.name, sub: theme.dark ? "Dark theme" : "Light theme",
                         icon: "color-management", keys: [], words: "colour color",
-                        run: () => { effect.set("Theme", theme.id); effect.close() } })
+                        run: () => {
+                            effect.set("Theme", theme.id)
+                            effect.close()
+                            effect.tell("Theme: " + theme.name, [], "color-management")
+                        } })
+        const feedback = effect.configuration.Feedback
+        list.push({ name: "Shortcut Feedback", sub: feedback ? "On: a note says what each key did" : "Off",
+                    icon: "dialog-messages", keys: [], words: "toast popup osd notes",
+                    run: () => {
+                        effect.set("Feedback", !feedback)
+                        effect.tell("Shortcut feedback on", [], "dialog-messages")
+                    } })
         list.push({ name: "Lock", sub: "Lock the screen", icon: "system-lock-screen", keys: [], run: act("lock") },
                   { name: "Sleep", sub: "Suspend to memory", icon: "system-suspend", keys: [], words: "suspend", run: act("sleep") },
                   { name: "Log Out", sub: "End the session", icon: "system-log-out", keys: [], words: "logout", run: act("logout") },
@@ -86,6 +97,7 @@ Sheet {
         const apps = shell.trayApps.map(app => app.id === id ? { id: "", icon: "" } : app)
         apps[slot] = { id: id, icon: id }
         shell.set("TrayApps", Apps.format(apps))
+        shell.tell("Pinned " + row.name + " to", ["Meta", Apps.key(slot)], id)
     }
 
     onShownChanged: if (shown) {

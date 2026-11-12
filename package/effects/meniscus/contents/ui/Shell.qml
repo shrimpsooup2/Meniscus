@@ -46,4 +46,9 @@ FocusScope {
         shell: view.effect
         shown: view.here && view.effect.surface === "tray"
     }
+    Toast {
+        ui: look
+        note: view.here ? view.effect.toast : null
+        lift: view.effect.surface === "tray" ? 124 : 0
+    }
 }
