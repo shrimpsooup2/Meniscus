@@ -89,6 +89,7 @@ layout(std140, binding = 0) uniform buf {
     float uEndpointAlpha;
     float uEdgeFold;
     float uRefractGain;   // Meniscus: the Refraction setting, a gain on the displacement
+    float uDark;          // Meniscus: 1 when the theme is dark, which picks the Increase Contrast solid
 };
 
 layout(binding = 1) uniform sampler2D source;  // the live backdrop under the padded layer
@@ -1324,11 +1325,14 @@ vec4 glassMain(vec2 coord) {
     col += vec3(float(touchFall * 0.06 * mat));
 
     // Increase Contrast: Apple's guidance is that the material becomes predominantly black or
-    // white with a contrasting border, rather than losing the effect entirely.
+    // white with a contrasting border, rather than losing the effect entirely. Meniscus picks the
+    // solid by the theme, not by the pixel behind it: the ink stays legible, and a sheet never
+    // splits where its backdrop turns from light to dark.
     float contrastBoost = clamp(uContrast, 0.0, 1.0);
-    vec3 solid = (bgLuma > 0.5) ? vec3(0.02) : vec3(0.97);
+    bool darkSolid = uDark > 0.5;
+    vec3 solid = darkSolid ? vec3(0.02) : vec3(0.97);
     col = mix(col, solid, float(contrastBoost * 0.88));
-    col += vec3(float(contrastBoost * edge * ((bgLuma > 0.5) ? 0.85 : -0.85)));
+    col += vec3(float(contrastBoost * edge * (darkSolid ? 0.85 : -0.85)));
 
     // Endpoint mode emits the opaque material B1 so semantic ink can be composited over it once
     // and the complete endpoint then replaced under one aperture coverage

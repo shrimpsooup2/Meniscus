@@ -90,6 +90,7 @@ layout(std140, binding = 0) uniform buf {
     float uEndpointAlpha;
     float uEdgeFold;
     float uRefractGain;   // Meniscus: the Refraction setting, a gain on the displacement
+    float uDark;          // Meniscus: 1 when the theme is dark, which picks the Increase Contrast solid
 };
 
 void main() {

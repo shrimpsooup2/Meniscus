@@ -48,6 +48,7 @@ Item {
             increasedContrast: ui.increaseContrast ? 1 : 0,
         }, width * dpr, height * dpr, dpr)
         v.uRefractGain = [ui.refraction]
+        v.uDark = [ui.dark ? 1 : 0]           // the Increase Contrast solid follows the theme
         v.uRefractBand[0] *= ui.curvature     // the width of the curved rim, and so its bend
         v.uBevel[0] *= ui.curvature           // and of the light it catches
         v.uBlur[0] *= ui.frost

@@ -91,6 +91,7 @@ ShaderEffect {
     property real uEndpointAlpha
     property real uEdgeFold
     property real uRefractGain: 1   // Meniscus
+    property real uDark             // Meniscus
 
     /** Sets every material uniform from {name: [numbers]} (material.js). */
     function setUniforms(values) {
@@ -174,5 +175,6 @@ ShaderEffect {
         v = values.uEndpointAlpha; if (v) uEndpointAlpha = v[0]
         v = values.uEdgeFold; if (v) uEdgeFold = v[0]
         v = values.uRefractGain; if (v) uRefractGain = v[0]
+        v = values.uDark; if (v) uDark = v[0]
     }
 }

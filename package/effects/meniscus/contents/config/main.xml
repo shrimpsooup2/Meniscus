@@ -13,8 +13,9 @@
         <!-- Liquid glass: the material measured against iOS by shayann07/liquidglass.
              Percentages are of that material unless noted. -->
         <entry name="Glass" type="Bool"><default>true</default></entry>
-        <!-- 0..100 on the measured tint scale; 50 is iOS's default, Meniscus leans more tinted. -->
-        <entry name="Tint" type="Int"><default>75</default><min>0</min><max>100</max></entry>
+        <!-- 0..100 on the measured tint scale; 50 is iOS's default. Meniscus sits at the top so
+             text behind a sheet never competes with what is on it. -->
+        <entry name="Tint" type="Int"><default>100</default><min>0</min><max>100</max></entry>
         <!-- Tint the glass with the theme's colour rather than neutral grey. -->
         <entry name="ThemeTint" type="Bool"><default>true</default></entry>
         <!-- How strongly the curved rim bends what is behind it. -->
