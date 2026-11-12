@@ -471,7 +471,7 @@ APPS = (
     ("Steam", "Application for managing and playing games", "steam"),
     ("System Settings", "Configure your computer", "systemsettings"),
     ("Krita", "Digital Painting", "org.kde.krita"), ("Elisa", "Music Player", "org.kde.elisa"),
-    ("Discover", "Software Centre", "org.kde.discover"), ("Spectacle", "Screenshots", "org.kde.spectacle"),
+    ("Bazaar", "App store", "io.github.kolunmi.Bazaar"), ("Spectacle", "Screenshots", "org.kde.spectacle"),
     ("Lutris", "Game launcher", "lutris"), ("Okular", "Document Viewer", "org.kde.okular"),
     ("Blender", "3D modelling", "blender"), ("Inkscape", "Vector Graphics Editor", "org.inkscape.Inkscape"),
     ("Thunderbird", "Mail Client", "thunderbird"), ("OBS Studio", "Streaming and recording", "com.obsproject.Studio"),

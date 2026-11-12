@@ -6,6 +6,8 @@ A KDE Plasma desktop that stays out of your way. Everything opens from a shortcu
 
 Work in progress: there is no installer yet.
 
+[KEYBINDS.md](KEYBINDS.md) lists every key Meniscus uses and every Plasma default it touches.
+
 ## Credits
 
 The glass is rendered with a port of [liquidglass](https://github.com/shayann07/liquidglass) (Apache-2.0); its license, credits and the changes made here are in [`LiquidGlass/`](package/effects/meniscus/contents/ui/LiquidGlass/).

@@ -53,7 +53,7 @@
         <!-- Tray: a drawer of ten apps at the bottom border, slots 1 to 9 then 0. Comma separated
              desktop file ids; write id=icon where the app's icon is named differently. -->
         <entry name="Tray" type="Bool"><default>true</default></entry>
-        <entry name="TrayApps" type="String"><default>org.kde.dolphin=system-file-manager,org.mozilla.firefox,org.kde.konsole=utilities-terminal,steam,org.kde.discover=plasmadiscover,systemsettings=preferences-system</default></entry>
+        <entry name="TrayApps" type="String"><default>org.kde.dolphin=system-file-manager,org.mozilla.firefox,org.kde.konsole=utilities-terminal,steam,net.lutris.Lutris,io.github.kolunmi.Bazaar,systemsettings=preferences-system</default></entry>
 
         <!-- Windows. -->
         <entry name="AutoSolo" type="Bool"><default>true</default></entry>
